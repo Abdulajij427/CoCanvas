@@ -14,3 +14,5 @@ steps to create excalidraw project:
 11. decode thw token in the websocket server as well . send the token to the websocket server in a query param for now 
 12. initialize a new 'db' package where you write the schema of the object
 13. import the db package in http layer and start putting things in the DB 
+14. add a common package where we add the zod schema and the JWT_SECRET
+
