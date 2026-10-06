@@ -74,7 +74,11 @@ userRouter.post("/signin", async (req:Request , res: Response)=>{
 
 
 userRouter.get("/room", middleware , async (res: Response , req: Request)=>{
-    
+    //db call
+
+    res.json({
+        roomId : 123
+    })
 })
 
 
