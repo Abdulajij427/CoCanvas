@@ -1,5 +1,6 @@
 import {Router , type Request , type Response} from 'express';
 import bcrypt from 'bcrypt'
+import {userSchema} from '../../../packages/db/schema.js'
 
 
 const userRouter: Router = Router();
@@ -13,7 +14,7 @@ userRouter.post("/signup", async (req:Request , res: Response)=>{
         return res.status(403).json({message: "username is already taken"});
 
     } else{
-        return res.status(200).json({message:" username is created successfully"})
+        return res.status(200).json({message:" username is created successfully"});
     }
 });
 
