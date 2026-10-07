@@ -63,7 +63,19 @@ export async function CreateRoomMemberTable(){
 
 
 
-
+export async function CreateChatsTable(){
+    return await pool.query(
+        `
+        CREATE TABLE chats (
+        id SERIAL PRIMARY KEY,
+        room_id INT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+        user_id INT NOT NULL REFERENCES users(id),
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+        );
+        `
+    )
+}
 
 
 
