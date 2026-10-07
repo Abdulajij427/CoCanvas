@@ -27,6 +27,8 @@ userRouter.post("/signup", async (req:Request , res: Response)=>{
         [username , hashedPassword]
     );
 
+    
+
     const userId = rows[0].id;
     if(username){
         return res.status(403).json({message: "username is already taken"});

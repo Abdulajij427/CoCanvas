@@ -10,7 +10,7 @@ export const pool = new Pool({
 
 
 // store username , password
-export async function users(){
+export async function CreateUserTable(){
     
     try{
     return await pool.query(
@@ -30,6 +30,40 @@ export async function users(){
         throw error;
     }
 }
+
+
+
+export async function CreateRoomTable(){
+    return await pool.query(
+        `
+        CREATE TABLE rooms(
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(200) UNIQUE NOT NULL,
+        admin_id INT NOT NULL REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT NOW()
+        );
+        `
+    );
+}
+
+
+
+export async function CreateRoomMemberTable(){
+
+    return await pool.query(
+        `
+        CREATE TABLE room_members(
+            room_id INT REFERENCES rooms(id) ON DELETE CASCADE,
+            user_id INT REFERENCES users(id) ON DELETE CASCADE,
+            PRIMARY KEY (room_id , user_id)
+        );
+        `
+    )
+}
+
+
+
+
 
 
 
