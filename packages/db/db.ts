@@ -13,10 +13,11 @@ export const pool = new Pool({
 export async function users(){
     
     try{
-     await pool.query(
+    return await pool.query(
         `
         CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
         username VARCHAR(100) NOT NULL,
         password VARCHAR(100) NOT NULL
         );
