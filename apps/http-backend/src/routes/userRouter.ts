@@ -1,6 +1,6 @@
 import {Router , type Request , type Response} from 'express';
 import bcrypt from 'bcrypt'
-import {User , UserSchema} from "@repo/schema"
+import {User , UserSchema ,SigninSchema , RoomSchema} from "@repo/schema"
 import {pool} from "@repo/db"
 import  generateToken from '../config.js'
 import {middleware} from '../middleware/middleware.js'
@@ -27,6 +27,7 @@ userRouter.post("/signup", async (req:Request , res: Response)=>{
         [username , hashedPassword]
     );
 
+    const userId = rows[0].id;
     if(username){
         return res.status(403).json({message: "username is already taken"});
 
@@ -42,7 +43,7 @@ userRouter.post("/signup", async (req:Request , res: Response)=>{
 
 
 userRouter.post("/signin", async (req:Request , res: Response)=>{
-    const parsed = UserSchema.safeParse(req.body);
+    const parsed = SigninSchema.safeParse(req.body);
     if(!parsed.success){
         return res.status(411).json({message:"invalid input"})
     }
@@ -75,6 +76,16 @@ userRouter.post("/signin", async (req:Request , res: Response)=>{
 
 userRouter.get("/room", middleware , async (res: Response , req: Request)=>{
     //db call
+
+    const data = RoomSchema.safeParse(req.body);
+    if(!data.success){
+
+        res.json({
+            message:"Incorrect inputs"
+        })
+        return;
+    }
+
 
     res.json({
         roomId : 123
