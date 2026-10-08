@@ -3,7 +3,7 @@ import userRouter from './userRouter.js'
 
 
 const mainRouter: Router = express.Router();
-mainRouter.use("/user", userRouter);
+mainRouter.use('/user', userRouter);
 
 
 

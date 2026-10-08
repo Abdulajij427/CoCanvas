@@ -79,37 +79,37 @@ interface AuthRequest extends Request {
 }
 
 
-userRouter.post("/room", middleware, async (req: AuthRequest, res: Response) => {
-  const parsed = RoomSchema.safeParse(req.body);
-  if (!parsed.success) {
-    return res.status(400).json({ message: "Incorrect inputs" });
-  }
+userRouter.post("/room", middleware , async (req: AuthRequest , res: Response)=>{
+    const parsed = RoomSchema.safeParse(req.body);
 
-  const { name } = parsed.data;   // DB me ye slug column me jayega
-
-  try {
-    // ek hi query me: room banao + admin ko member banao
-    const { rows } = await pool.query(
-      `WITH new_room AS (
-         INSERT INTO rooms (slug, admin_id)
-         VALUES ($1, $2)
-         RETURNING id
-       )
-       INSERT INTO room_members (room_id, user_id)
-       SELECT id, $2 FROM new_room
-       RETURNING room_id`,
-      [name, req.userId]
-    );
-
-    return res.status(201).json({ roomId: rows[0].room_id });
-  } catch (error: any) {
-    if (error.code === "23505") {
-      return res.status(409).json({ message: "Room name already taken" });
+    if(!parsed.success){
+        return res.status(400).json({messsage: "inccorect invalid"})
     }
-    console.error("Create room error:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
 
+    const {name} = parsed.data;
+
+
+    try{
+       const {rows} = await pool.query(
+        `
+            WITH new_room AS (
+                INSERT  INTO rooms (slug , admin_id)
+                VALUES ($1 , $2 )
+                RETURNING id
+            )
+            INSERT INTO room_members (user_id , room_id)
+            VALUES $1 $2 FROM new_room
+            RETURNING room_id    
+        `,
+        [name , req.userId]
+       );
+
+       return res.status(201).json({roomId : rows[0].room_id});
+    }catch(error: any){
+        if(error.code === "23505"){
+            return res.status(409).json({message:"room name laready taken"});
+        }
+    }
+})
 
 export default userRouter;

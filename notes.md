@@ -17,3 +17,16 @@ steps to create excalidraw project:
 14. add a common package where we add the zod schema and the JWT_SECRET
 
 15. complete HTTP Backend 
+16. ws layer room management broadcast messages
+17. HTTP route for GET /chats?room = 123
+18. frontend
+
+
+
+
+## state management on the backend (concept)
+
+1. state less backend 
+in user send sends to http and http send request direct to DB , 
+
+2. the simplest approch to state in a backend is global state variable 
