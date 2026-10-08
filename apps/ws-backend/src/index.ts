@@ -5,6 +5,26 @@ import JWT_SECRET from '@repo/backend-common';
 
 const wss = new WebSocketServer({port:8000});
 
+
+function checkUser(token: string): string | null{
+    const decoded = jwt.verify(token , JWT_SECRET);
+
+    if(typeof decoded == "string"){
+        return null;
+    }
+
+    if(!decoded || !decoded.userId){
+        return null;
+    }
+
+    return decoded.userId;
+}
+
+
+
+
+
+
 wss.on('connection', function connection(ws , request){
     const url = request.url;
 
@@ -24,7 +44,7 @@ wss.on('connection', function connection(ws , request){
     }
     
 
-    
+
     
 
     ws.on("message", function message(data){
