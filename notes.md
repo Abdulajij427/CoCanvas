@@ -16,3 +16,4 @@ steps to create excalidraw project:
 13. import the db package in http layer and start putting things in the DB 
 14. add a common package where we add the zod schema and the JWT_SECRET
 
+15. complete HTTP Backend 
