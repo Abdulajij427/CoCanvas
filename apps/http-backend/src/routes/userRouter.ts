@@ -112,4 +112,57 @@ userRouter.post("/room", middleware , async (req: AuthRequest , res: Response)=>
     }
 })
 
+
+
+userRouter.get("/chat/:roomId", async (req: AuthRequest , res: Response)=>{
+    const roomId = req.params.roomId;
+    if(!Number.isInteger(roomId)){
+        return res.status(400).json({message: "invalid input"})
+    }
+
+    const before = req.params.before ? Number(req.params.before) : null;
+    const limit = Math.min(Number(req.query.limit) || 50 ,100);
+
+    try{
+        // sirf room ke members padh skate hain
+
+        const member = await pool.query(
+            `
+            SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2
+            `,
+            [roomId , req.userId]
+        );
+
+        if(member.rowCount === 0){
+            return res.status(403).json({message: "not a memebr of this room"});
+        }
+
+        const {rows} = await pool.query(
+            `
+            SELECT c.id , c.message , c.user_id , u.name , c.created_at
+            FROM chats c
+            JOIN users u ON u.id = c.user_id
+            WHERE c.room_id = $1
+                AND ($2:: int IS NULL OR c.id < $2)
+            ORDER BY c.id DESC
+            LIMIT $3    
+            `,
+            [roomId , before , limit]
+        );
+
+        // DESC me nikla (latest pehle) , UI ke liye purane se naya order me palat do
+        const chats = rows.reverse();
+
+        return res.json({
+            chats,
+            nextBefore: chats.length === limit ? chats[0].id : null,
+        });
+    }catch(error){
+        console.error("get chats error:", error);
+        return res.status(500).json({message: "server error"});
+    }
+});
+
+
+
 export default userRouter;
