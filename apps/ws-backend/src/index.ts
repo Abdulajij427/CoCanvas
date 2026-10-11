@@ -67,17 +67,23 @@ wss.on("connection", function connection(ws, request) {
             }
 
             if (parsed.type === "chat") {
-                if (!me.rooms.includes(roomId)) return;   // pehle join_room zaroori
+                if (!me.rooms.includes(roomId)) return;
                 const message = String(parsed.message);
 
-                await pool.query(
-                    `INSERT INTO chats (room_id, user_id, message) VALUES ($1, $2, $3)`,
+                const { rows } = await pool.query(
+                    `WITH ins AS (
+                    INSERT INTO chats (room_id, user_id, message)
+                    VALUES ($1, $2, $3)
+                    RETURNING id
+                    )
+                    SELECT ins.id, u.name FROM ins, users u WHERE u.id = $2::int`,
                     [roomId, userId, message]
                 );
+                const { id, name } = rows[0];
 
                 users.forEach(u => {
-                    if (u.rooms.includes(roomId)) {
-                        u.ws.send(JSON.stringify({ type: "chat", message, roomId }));
+                    if (u.rooms.includes(roomId) && u.ws.readyState === WebSocket.OPEN) {
+                        u.ws.send(JSON.stringify({ type: "chat", id, name, message, roomId }));
                     }
                 });
             }

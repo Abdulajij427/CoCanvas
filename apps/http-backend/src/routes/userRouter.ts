@@ -1,14 +1,27 @@
-import {Router , type Request , type Response} from 'express';
-import bcrypt from 'bcrypt'
-import {User , UserSchema ,SigninSchema , RoomSchema} from "@repo/schema"
-import {pool} from "@repo/db"
-import  generateToken from '../config.js'
-import {middleware} from '../middleware/middleware.js'
+
+
+
+import { Router, type Request, type Response } from "express";
+import bcrypt from "bcrypt";
+import {
+  UserSchema,
+  SigninSchema,
+  RoomSchema,
+} from "@repo/schema";
+import { pool } from "@repo/db";
+import generateToken from "../config.js";
+import { middleware } from "../middleware/middleware.js";
 
 const userRouter: Router = Router();
 
+interface AuthRequest extends Request {
+  userId?: number;
+}
+
+// Signup
 userRouter.post("/signup", async (req: Request, res: Response) => {
   const parsed = UserSchema.safeParse(req.body);
+
   if (!parsed.success) {
     return res.status(400).json({ message: "Invalid input" });
   }
@@ -30,19 +43,21 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
       userId: rows[0].id,
     });
   } catch (error: any) {
-    // 23505 = unique constraint violation (username already exists)
     if (error.code === "23505") {
-      return res.status(409).json({ message: "Username is already taken" });
+      return res.status(409).json({
+        message: "Username is already taken",
+      });
     }
-    console.error(error);
+
+    console.error("Signup error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 });
 
-
-
+// Signin
 userRouter.post("/signin", async (req: Request, res: Response) => {
   const parsed = SigninSchema.safeParse(req.body);
+
   if (!parsed.success) {
     return res.status(400).json({ message: "Invalid input" });
   }
@@ -51,118 +66,206 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, password FROM users WHERE username = $1`,
+      "SELECT id, password FROM users WHERE username = $1",
       [username]
     );
 
     const user = rows[0];
 
-    // user na mile ya password galat ho: same message (attacker ko hint nahi milta)
-    const isValid = user && (await bcrypt.compare(password, user.password));
-    if (!isValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({
+        message: "Invalid credentials",
+      });
     }
 
     const token = generateToken(user.id);
-    return res.status(200).json({ message: "Signin successful", token });
+
+    return res.status(200).json({
+      message: "Signin successful",
+      token,
+    });
   } catch (error) {
     console.error("Signin error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 });
 
-
-
-// for userId 
-interface AuthRequest extends Request {
-    userId?: number;
-}
-
-
-userRouter.post("/room", middleware , async (req: AuthRequest , res: Response)=>{
+// Create room
+userRouter.post(
+  "/room",
+  middleware,
+  async (req: AuthRequest, res: Response) => {
     const parsed = RoomSchema.safeParse(req.body);
 
-    if(!parsed.success){
-        return res.status(400).json({messsage: "inccorect invalid"})
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Incorrect inputs",
+      });
     }
 
-    const {name} = parsed.data;
-
-
-    try{
-       const {rows} = await pool.query(
-        `
-            WITH new_room AS (
-                INSERT  INTO rooms (slug , admin_id)
-                VALUES ($1 , $2 )
-                RETURNING id
-            )
-            INSERT INTO room_members (user_id , room_id)
-            VALUES $1 $2 FROM new_room
-            RETURNING room_id    
-        `,
-        [name , req.userId]
-       );
-
-       return res.status(201).json({roomId : rows[0].room_id});
-    }catch(error: any){
-        if(error.code === "23505"){
-            return res.status(409).json({message:"room name laready taken"});
-        }
-    }
-})
-
-
-
-userRouter.get("/chat/:roomId", async (req: AuthRequest , res: Response)=>{
-    const roomId = req.params.roomId;
-    if(!Number.isInteger(roomId)){
-        return res.status(400).json({message: "invalid input"})
+    if (!req.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const before = req.params.before ? Number(req.params.before) : null;
-    const limit = Math.min(Number(req.query.limit) || 50 ,100);
+    const { name } = parsed.data;
 
-    try{
-        // sirf room ke members padh skate hain
+    try {
+      const { rows } = await pool.query(
+        `WITH new_room AS (
+           INSERT INTO rooms (slug, admin_id)
+           VALUES ($1, $2)
+           RETURNING id
+         )
+         INSERT INTO room_members (room_id, user_id)
+         SELECT id, $2::int FROM new_room
+         RETURNING room_id`,
+        [name, req.userId]
+      );
 
-        const member = await pool.query(
-            `
-            SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2
-            `,
-            [roomId , req.userId]
-        );
-
-        if(member.rowCount === 0){
-            return res.status(403).json({message: "not a memebr of this room"});
-        }
-
-        const {rows} = await pool.query(
-            `
-            SELECT c.id , c.message , c.user_id , u.name , c.created_at
-            FROM chats c
-            JOIN users u ON u.id = c.user_id
-            WHERE c.room_id = $1
-                AND ($2:: int IS NULL OR c.id < $2)
-            ORDER BY c.id DESC
-            LIMIT $3    
-            `,
-            [roomId , before , limit]
-        );
-
-        // DESC me nikla (latest pehle) , UI ke liye purane se naya order me palat do
-        const chats = rows.reverse();
-
-        return res.json({
-            chats,
-            nextBefore: chats.length === limit ? chats[0].id : null,
+      return res.status(201).json({
+        roomId: rows[0].room_id,
+      });
+    } catch (error: any) {
+      if (error.code === "23505") {
+        return res.status(409).json({
+          message: "Room name already taken",
         });
-    }catch(error){
-        console.error("get chats error:", error);
-        return res.status(500).json({message: "server error"});
+      }
+
+      console.error("Create room error:", error);
+      return res.status(500).json({ message: "Server error" });
     }
+  }
+);
+
+// Get numeric room ID from slug
+userRouter.get("/room/:slug", async (req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT id FROM rooms WHERE slug = $1",
+      [req.params.slug]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    return res.json({ roomId: rows[0].id });
+  } catch (error) {
+    console.error("Get room error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
 });
 
+// Join room
+userRouter.post(
+  "/room/:slug/join",
+  middleware,
+  async (req: AuthRequest, res: Response) => {
+    if (!req.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
+    try {
+      const room = await pool.query(
+        "SELECT id FROM rooms WHERE slug = $1",
+        [req.params.slug]
+      );
+
+      if (room.rows.length === 0) {
+        return res.status(404).json({ message: "Room not found" });
+      }
+
+      await pool.query(
+        `INSERT INTO room_members (room_id, user_id)
+         VALUES ($1, $2)
+         ON CONFLICT DO NOTHING`,
+        [room.rows[0].id, req.userId]
+      );
+
+      return res.json({ roomId: room.rows[0].id });
+    } catch (error) {
+      console.error("Join room error:", error);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+// Get chat history — FIXED ROUTE
+userRouter.get(
+  "/chat/:roomId",
+  middleware,
+  async (req: AuthRequest, res: Response) => {
+    const roomId = Number(req.params.roomId);
+
+    if (!Number.isSafeInteger(roomId) || roomId <= 0) {
+      return res.status(400).json({ message: "Invalid room ID" });
+    }
+
+    if (!req.userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const beforeValue = req.query.before;
+    const limit = Math.min(
+      Math.max(Number(req.query.limit) || 50, 1),
+      100
+    );
+
+    let before: number | null = null;
+
+    if (beforeValue !== undefined) {
+      before = Number(beforeValue);
+
+      if (!Number.isSafeInteger(before) || before <= 0) {
+        return res.status(400).json({
+          message: "Invalid before cursor",
+        });
+      }
+    }
+
+    try {
+      const member = await pool.query(
+        `SELECT 1
+         FROM room_members
+         WHERE room_id = $1 AND user_id = $2`,
+        [roomId, req.userId]
+      );
+
+      if (member.rowCount === 0) {
+        return res.status(403).json({
+          message: "You are not a member of this room",
+        });
+      }
+
+      const { rows } = await pool.query(
+        `SELECT
+           c.id,
+           c.message,
+           c.user_id,
+           u.name,
+           c.created_at
+         FROM chats c
+         JOIN users u ON u.id = c.user_id
+         WHERE c.room_id = $1
+           AND ($2::int IS NULL OR c.id < $2)
+         ORDER BY c.id DESC
+         LIMIT $3`,
+        [roomId, before, limit]
+      );
+
+      const chats = rows.reverse();
+
+      return res.json({
+        chats,
+        nextBefore: chats.length === limit ? chats[0].id : null,
+      });
+    } catch (error) {
+      console.error("Get chats error:", error);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
+);
 
 export default userRouter;
+
