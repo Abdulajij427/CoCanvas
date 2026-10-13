@@ -18,6 +18,8 @@ interface AuthRequest extends Request {
   userId?: number;
 }
 
+
+
 // Signup
 userRouter.post("/signup", async (req: Request, res: Response) => {
   const parsed = UserSchema.safeParse(req.body);
@@ -268,4 +270,7 @@ userRouter.get(
 );
 
 export default userRouter;
+
+
+
 
