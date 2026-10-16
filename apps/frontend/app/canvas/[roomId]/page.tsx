@@ -1,26 +1,34 @@
-"use client"
-import {useEffect , useRef} from "react";
-import {initDraw} from "@/draw";
+
+import {Canvas} from '@/components/canvas'
+import {Suspense} from 'react' 
 
 
+async function CanvasContent({
+    params,
+}:{
+    params: Promise<{roomId : string}>;
+}){
+    const {roomId} = await params;
+    console.log(roomId);
 
-export default function Canvas(){
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    
-    useEffect(()=>{
-        const canvasRef = useRef<HTMLCanvasElement>(null);
-        if(canvasRef.current){
-            initDraw(canvasRef.current);
-        }
+    return <div>Canvas for room {roomId}</div>
+}
 
-            
-        
 
-    }, [canvasRef]);
-    
-    return(
-        <div>
-            <canvas ref={canvasRef} width={500} height={500} className="bg-white"></canvas>    
-        </div>
+export default async  function CanvasPage({
+    params,
+    }:{
+    params:Promise< {
+        roomId: string
+    }>
+
+}){
+
+    return (
+        <Suspense fallback = {<div>Loading canvas...</div>}>
+            <CanvasContent params={params}/>
+        </Suspense>
     )
 }
+
+
