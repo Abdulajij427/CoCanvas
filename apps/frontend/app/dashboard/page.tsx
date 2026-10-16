@@ -17,7 +17,7 @@ export default function Dashboard(){
         if(!token){
             return router.push("/signin");
         }
-        const headers = {Authentication: `Bearer ${token}`};
+        const headers = {Authorization: `Bearer ${token}`};
         try{
             const res = 
             mode === "create"

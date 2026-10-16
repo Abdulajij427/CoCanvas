@@ -1,25 +1,23 @@
-"use client"
-import {useRef , useEffect , useState} from "react";
-import {initDraw} from "@/draw";
-import {WS_URL}  from '@/config';
+"use client";
+import { useRef, useEffect } from "react";
+import { initDraw } from "@/draw";
 
-export function Canvas({roomId}: {roomId: string}){
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-        
-    useEffect(()=>{
-        if(canvasRef.current){
-            const socket = new WebSocket(WS_URL);
-            initDraw(canvasRef.current , roomId , socket);
-            return () => socket.close();
-        }
-    }, [roomId]);
-        return(
-            <div>
-                <canvas ref={canvasRef} width={500} height={500}></canvas>  
-                <div className="absolute bottom-0 right-0">
-                    <button>Rect</button>
-                    <button>Circle</button>
-                </div>  
-            </div>
-        )
+export function Canvas({ roomId, socket }: { roomId: number; socket: WebSocket }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const cleanup = initDraw(canvasRef.current, roomId, socket);
+    return cleanup;
+  }, [roomId, socket]);
+
+  return (
+    <div>
+      <canvas ref={canvasRef} width={1000} height={600} />
+      <div className="absolute bottom-0 right-0">
+        <button>Rect</button>
+        <button>Circle</button>
+      </div>
+    </div>
+  );
 }
