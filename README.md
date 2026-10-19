@@ -1,163 +1,151 @@
-<<<<<<< HEAD
-# Turborepo starter
-
-This Turborepo starter is maintained by the Turborepo core team.
-
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo build
-pnpm exec turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
-=======
 # CoCanvas
->>>>>>> 58b8a1317bb07a785eacb46086a8d4793df60700
+
+**Built from scratch, with no drawing library: the canvas, shape engine and real-time sync are all hand-written on the HTML Canvas API and raw WebSockets.**
+
+CoCanvas is a real-time collaborative whiteboard, an Excalidraw-style app. Sign in, create or join a room, and draw together: every rectangle, circle, pen stroke, move and erase shows up instantly on everyone's screen.
+
+## Features
+
+- **Auth:** signup and signin with bcrypt-hashed passwords and JWT tokens
+- **Rooms:** create a room by name, or join an existing one with the same name
+- **Drawing tools:** rectangle, circle, freehand pen, eraser, and a move tool to drag shapes around
+- **Live collaboration:** changes sync to everyone in the room over WebSockets
+- **Persistence:** every action is saved in PostgreSQL, so reopening a room restores the canvas
+- **Access control:** only room members can read history or send drawings, checked on both HTTP and WebSocket
+
+## Tech stack
+
+| Layer | Tech |
+|---|---|
+| Monorepo | Turborepo + pnpm workspaces |
+| Frontend | Next.js, React, TypeScript, Tailwind CSS, HTML Canvas API |
+| HTTP backend | Node.js, Express, TypeScript |
+| Real-time backend | `ws` (WebSocket server), TypeScript |
+| Database | PostgreSQL with `pg` (plain SQL, no ORM) |
+| Validation | Zod |
+| Auth | bcrypt, jsonwebtoken |
+
+## Project structure
+
+```
+CoCanvas/
+├── apps/
+│   ├── frontend/        # Next.js app (landing, auth, dashboard, canvas)
+│   ├── http-backend/    # REST API: auth, rooms, chat history  (port 3000)
+│   └── ws-backend/      # WebSocket server: live drawing sync  (port 8000)
+└── packages/
+    ├── db/              # PostgreSQL pool + table creation
+    ├── schema/          # Shared Zod schemas
+    ├── backend-common/  # Shared config (JWT secret)
+    └── typescript-config/
+```
+
+## How it works
+
+Drawing is **event-based**. Shapes are never saved directly. Every action is an event:
+
+```
+add    -> a new shape
+update -> a shape moved to a new position
+erase  -> a shape deleted
+```
+
+```
+Mouse action -> event -> WebSocket server -> saved in PostgreSQL
+             -> broadcast to everyone in the room -> each client applies it -> redraw
+```
+
+When you open a room, the client fetches the saved events over HTTP and replays them in order to rebuild the canvas. Because events are applied by shape `id`, applying the same event twice is harmless, so no duplicates appear.
+
+HTTP handles setup and history (auth, rooms, old events). WebSockets handle everything live.
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm
+- PostgreSQL running locally
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/Abdulajij427/CoCanvas.git
+cd CoCanvas
+pnpm install
+```
+
+If pnpm blocks build scripts, allow them in `pnpm-workspace.yaml`:
+
+```yaml
+allowBuilds:
+  bcrypt: true
+  unrs-resolver: true
+```
+
+### 2. Environment variables
+
+Create `packages/db/.env`:
+
+```
+DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/DBNAME
+```
+
+Set the JWT secret in `packages/backend-common` (use a long random value, never commit it).
+
+### 3. Build shared packages
+
+```bash
+pnpm --filter @repo/db build
+pnpm --filter @repo/schema build
+pnpm --filter @repo/backend-common build
+```
+
+Run this again whenever you change a shared package.
+
+### 4. Run the three servers
+
+Use three terminals:
+
+```bash
+pnpm --filter http-backend dev     # http://localhost:3000
+pnpm --filter ws-backend dev       # ws://localhost:8000
+pnpm --filter frontend dev         # http://localhost:3001
+```
+
+Tables are created automatically when the HTTP backend starts.
+
+### 5. Try it
+
+1. Open `http://localhost:3001/signup` and create an account, then sign in.
+2. Go to `/dashboard`, enter a room name and click **Create room**.
+3. In a second browser (or incognito), sign up another user, then **Join room** with the same name.
+4. Draw on one screen and watch it appear on the other.
+
+## API overview
+
+Base URL: `http://localhost:3000/api/v1/user`
+
+| Method | Route | Auth | Purpose |
+|---|---|---|---|
+| POST | `/signup` | No | Create an account |
+| POST | `/signin` | No | Get a JWT |
+| POST | `/room` | Yes | Create a room |
+| GET | `/room/:slug` | No | Get room id from its name |
+| POST | `/room/:slug/join` | Yes | Join a room |
+| GET | `/chat/:roomId` | Yes | Load saved drawing events |
+
+Protected routes expect `Authorization: Bearer <token>`. The WebSocket connects to `ws://localhost:8000?token=<token>` and understands `join_room`, `leave_room` and `chat` messages.
+
+## Roadmap
+
+- [ ] Pagination for long drawing history
+- [ ] Colors, stroke width and text tool
+- [ ] Undo / redo
+- [ ] Live cursors for other users
+- [ ] Shareable room links
+- [ ] httpOnly cookie auth instead of localStorage
+
+## Author
+
+Built by [Abdul](https://github.com/Abdulajij427).
